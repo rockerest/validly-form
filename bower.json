@@ -1,0 +1,39 @@
+{
+  "name": "validly-form",
+  "main": "validly-form.js",
+  "version": "0.0.1-a",
+  "homepage": "https://github.com/rockerest/validly-form",
+  "authors": [
+    "rockerest <admin@rockerest.com>"
+  ],
+  "description": "A plugin to manage form validation for Validly.js",
+  "moduleType": [
+    "amd"
+  ],
+  "keywords": [
+    "validly",
+    "validator",
+    "form",
+    "password"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "vendor",
+    "test",
+    "tests",
+    "vendor"
+  ],
+  "dependencies": {
+    "validly-password": "*"
+  },
+  "devDependencies": {
+    "mocha": "~1.18.2",
+    "chai": "~1.9.1",
+    "require": "requirejs#~2.1.11",
+    "sinon": "~1.9.0",
+    "sinon-chai": "~2.5.0"
+  }
+}
