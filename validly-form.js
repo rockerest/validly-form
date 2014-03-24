@@ -5,11 +5,11 @@ define(
         var form,
             valid = new Validly(),
             triggers = [
-                "data-validly-min",
-                "data-validly-max",
-                "data-validly-require",
-                "data-validly-contains",
-                "data-validly-matches"
+                "min",
+                "max",
+                "require",
+                "contains",
+                "matches"
             ];
 
         /****** Helpers ******/
@@ -67,131 +67,141 @@ define(
         }
 
         form = function( domNode, settings ){
-            var options = {},
-                defaults = {
-                    "config": {
-                        "prefix": "data-validly"
-                    },
-                    "handlers":{
-                        "password": {
-                            "pass": function(){
-                                log( "Password passed enough filters" );
-                            },
-                            "fail": function(){
-                                log( "Password is not good enough" );
-                            },
-                            "strength": function( value ){
-                                log( "The password has a value of " + value );
-                            }
-                        },
+            this.options = {};
+            this.defaults = {
+                "prefix": "data-validly",
+                "autostart": true,
+                "handlers":{
+                    "password": {
                         "pass": function(){
-                            log( "Field passed the restrictions" );
+                            log( "Password passed enough filters" );
                         },
                         "fail": function(){
-                            log( "Field did not meet the restrictions" );
+                            log( "Password is not good enough" );
+                        },
+                        "strength": function( value ){
+                            log( "The password has a value of " + value );
                         }
+                    },
+                    "pass": function(){
+                        log( "Field passed the restrictions" );
+                    },
+                    "fail": function(){
+                        log( "Field did not meet the restrictions" );
                     }
-                },
-                nodes,par,nodesLen,i;
+                }
+            };
+
+            this.nodes;
+            this.parent;
 
             if( !settings ){
-                settings = defaults;
+                settings = this.defaults;
             }
 
-            options = merge( defaults, settings );
+            this.options = merge( this.defaults, settings );
 
-            if( domNode.nodeType === 1 && domNode.tagName === "FORM" ){
-                par = domNode;
+            if( domNode && domNode.nodeType === 1 && domNode.tagName === "FORM" ){
+                this.parent = domNode;
             }
             else{
                 throw new Error( "The Validly Form plugin only accepts a FORM tag as the parameter to its constructor." );
             }
 
-            this.getFieldsToValidate = function(){
-                var nodes = document.querySelectorAll("[" + options.config.prefix + "]"),
-                    finalNodes = [],
-                    len = nodes.length,
-                    i = 0,
-                    node;
+            if( this.options.autostart ){
+                this.start();
+            }
 
-                for( i; i < len; i++ ){
-                    if( par.contains( nodes[i] ) ){
-                        finalNodes.push( nodes[i] );
-                    }
+            return this;
+        }
+
+        form.prototype.getFieldsToValidate = function(){
+            var nodes = document.querySelectorAll("[" + this.options.prefix + "]"),
+                finalNodes = [],
+                len = nodes.length,
+                i = 0,
+                node;
+
+            for( i; i < len; i++ ){
+                if( this.parent.contains( nodes[i] ) ){
+                    finalNodes.push( nodes[i] );
                 }
+            }
 
-                return finalNodes;
-            };
+            return finalNodes;
+        };
 
-            this.manageField = function( node ){
-                var self = this;
-                node.addEventListener( "keyup", function( e ){
-                    self.validateField( this, e.keyCode );
-                }, false );
-            };
+        form.prototype.manageField = function( node ){
+            var self = this;
+            node.addEventListener( "keyup", function( e ){
+                self.validateField( this, e.keyCode );
+            }, false );
+        };
 
-            this.validateField = function( element, keypress ){
-                var passes = true,
-                    i = 0,
-                    len = triggers.length,
-                    attr,method;
+        form.prototype.validateField = function( element, keypress ){
+            var passes = true,
+                i = 0,
+                len = triggers.length,
+                attr;
 
-                for( i; i < len; i++ ){
-                    attr = element.getAttribute( triggers[i] );
+            for( i; i < len; i++ ){
+                attr = element.getAttribute( this.options.prefix + "-" + triggers[i] );
 
-                    if( attr ){
-                        method = triggers[i].replace( options.config.prefix + "-", "" );
-                        attr = attr == parseInt( attr ) ? parseInt( attr ) : attr;
+                if( attr ){
+                    attr = attr == parseInt( attr ) ? parseInt( attr ) : attr;
 
-                        passes = passes && valid[ method ]( attr, element.value );
-                    }
+                    passes = passes && valid[ triggers[i] ]( attr, element.value );
                 }
+            }
 
-                if( element.type === "password" ){
-                    this.validatePassword( element, keypress );
-                }
-                else{
-                    if( passes ){
-                        options.handlers.pass( element );
-                    }
-                    else{
-                        options.handlers.fail( element );
-                    }
-                }
-            };
-
-            this.validatePassword = function( element, keypress ){
-                var filters = element.getAttribute( options.config.prefix + "-filters" ).split(" "),
-                    minFilters = parseInt( element.getAttribute( options.config.prefix + "-meets" ) ),
-                    testForStrength = element.hasAttribute( options.config.prefix + "-strength" );
-
-                if( testForStrength ){
-                    this.testPasswordStrength( element, keypress );
-                }
-
-                for( var i = 0; i < filters.length; i++ ){
-                    valid.password.addFilter( filters[i] );
-                }
-
-                if( valid.password.meetsMinimumFilters( element.value, minFilters ) ){
-                    options.handlers.password.pass( element );
+            if( element.type === "password" ){
+                this.validatePassword( element, keypress );
+            }
+            else{
+                if( passes ){
+                    this.options.handlers.pass( element );
                 }
                 else{
-                    options.handlers.password.fail( element );
+                    this.options.handlers.fail( element );
                 }
-            };
-
-            this.testPasswordStrength = function( element, keypress ){
-                options.handlers.password.strength( valid.password.testStrength( element.value, options.handlers.password.test ) );
-            };
-
-            nodes = this.getFieldsToValidate();
-            nodesLen = nodes.length;
-
-            for( i = 0; i < nodesLen; i++ ){
-                this.manageField( nodes[i] );
             }
         };
+
+        form.prototype.validatePassword = function( element, keypress ){
+            var filters = element.getAttribute( this.options.prefix + "-filters" ).split(" "),
+                minFilters = parseInt( element.getAttribute( this.options.prefix + "-meets" ) ),
+                testForStrength = element.hasAttribute( this.options.prefix + "-strength" );
+
+            if( testForStrength ){
+                this.testPasswordStrength( element, keypress );
+            }
+
+            for( var i = 0; i < filters.length; i++ ){
+                valid.password.addFilter( filters[i] );
+            }
+
+            if( valid.password.meetsMinimumFilters( element.value, minFilters ) ){
+                this.options.handlers.password.pass( element );
+            }
+            else{
+                this.options.handlers.password.fail( element );
+            }
+        };
+
+        form.prototype.testPasswordStrength = function( element, keypress ){
+            this.options.handlers.password.strength( valid.password.testStrength( element.value, this.options.handlers.password.test ) );
+        };
+
+        form.prototype.start = function(){
+            var i,nodesLen;
+
+            this.nodes = this.getFieldsToValidate();
+            nodesLen = this.nodes.length;
+
+            for( i = 0; i < nodesLen; i++ ){
+                this.manageField( this.nodes[i] );
+            }
+        }
 
         return Validly.plugin( "form", form );
     }
