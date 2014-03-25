@@ -26,18 +26,20 @@
         <script src="../vendor/sinon/lib/sinon/util/timers_ie.js"></script>
         <script src="../vendor/sinon/lib/sinon/util/xhr_ie.js"></script>
 
+
         <script src="../vendor/require/require.js" data-main="runner"></script>
     </head>
     <body>
         <div id="mocha"></div>
         <div id="workspace" style="display:none;">
             <form id="validly-form">
-                <input type="text" maxlength="4" data-validly="aware" data-validly-max="4" />
-                <input type="text" data-validly="aware" data-validly-min="8" />
-                <input type="password" data-validly="aware" data-validly-filters="upper lower number" data-validly-meets="3" />
-                <input type="text" data-validly="aware" data-validly-contains="es" />
-                <input type="text" data-validly="aware" data-validly-matches="penguin(s)?" />
-                <input type="text" data-not-picked-up />
+                <input type="text" maxlength="4"                    data-validly="aware" data-validly-max="4" />
+                <input type="text"                                  data-validly="aware" data-validly-min="8" />
+                <input type="password"  id="passwordInput"          data-validly="aware" data-validly-filters="upper lower number" data-validly-meets="3" />
+                <input type="password"  id="passwordStrengthInput"  data-validly="aware" data-validly-filters="upper lower number" data-validly-meets="3" data-validly-strength />
+                <input type="text"                                  data-validly="aware" data-validly-contains="es" />
+                <input type="text"      id="penguinInput"           data-validly="aware" data-validly-matches="penguin(s)?" />
+                <input type="text"                                  data-not-picked-up />
             </form>
         </div>
     </body>
