@@ -3,7 +3,6 @@ define(
     function( Validly ){
         /****** Set up things we need ******/
         var form,
-            valid = new Validly(),
             triggers = [
                 "min",
                 "max",
@@ -94,6 +93,7 @@ define(
 
             this.nodes;
             this.parent;
+            this.validator = new Validly();
 
             if( !settings ){
                 settings = this.defaults;
@@ -133,9 +133,14 @@ define(
 
         form.prototype.manageField = function( node ){
             var self = this;
-            node.addEventListener( "keyup", function( e ){
-                self.validateField( this, e.keyCode );
-            }, false );
+            if( node && node.hasOwnProperty( "addEventListener" ) ){
+                node.addEventListener( "keyup", function( e ){
+                    self.validateField( this, e.keyCode );
+                }, false );
+            }
+            else{
+                throw new Error( "manageField can only manage EventTargets" );
+            }
         };
 
         form.prototype.validateField = function( element, keypress ){
@@ -150,7 +155,7 @@ define(
                 if( attr ){
                     attr = attr == parseInt( attr ) ? parseInt( attr ) : attr;
 
-                    passes = passes && valid[ triggers[i] ]( attr, element.value );
+                    passes = passes && this.validator[ triggers[i] ]( attr, element.value );
                 }
             }
 
@@ -177,10 +182,10 @@ define(
             }
 
             for( var i = 0; i < filters.length; i++ ){
-                valid.password.addFilter( filters[i] );
+                this.validator.password.addFilter( filters[i] );
             }
 
-            if( valid.password.meetsMinimumFilters( element.value, minFilters ) ){
+            if( this.validator.password.meetsMinimumFilters( element.value, minFilters ) ){
                 this.options.handlers.password.pass( element );
             }
             else{
@@ -189,7 +194,7 @@ define(
         };
 
         form.prototype.testPasswordStrength = function( element, keypress ){
-            this.options.handlers.password.strength( valid.password.testStrength( element.value, this.options.handlers.password.test ) );
+            this.options.handlers.password.strength( this.validator.password.testStrength( element.value, this.options.handlers.password.test ) );
         };
 
         form.prototype.start = function(){
