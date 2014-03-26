@@ -155,6 +155,10 @@ define(
                 if( attr ){
                     attr = attr == parseInt( attr ) ? parseInt( attr ) : attr;
 
+                    if( triggers[i] === "matches" ){
+                        attr = new RegExp( attr );
+                    }
+
                     passes = passes && this.validator[ triggers[i] ]( attr, element.value );
                 }
             }
