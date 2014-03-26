@@ -134,7 +134,7 @@ define(
         form.prototype.manageField = function( node ){
             var self = this;
             if( node && node.addEventListener ){
-                node.addEventListener( "keyup", function( e ){
+                node.addEventListener( "keyup" , function( e ){
                     self.validateField( this, e.keyCode );
                 }, false );
             }
@@ -160,7 +160,12 @@ define(
             }
 
             if( element.type === "password" ){
-                this.validatePassword( element, keypress );
+                if( passes ){
+                    this.validatePassword( element, keypress );
+                }
+                else{
+                    this.options.handlers.fail( element );
+                }
             }
             else{
                 if( passes ){
@@ -191,6 +196,8 @@ define(
             else{
                 this.options.handlers.password.fail( element );
             }
+
+            this.validator.password.resetFilters();
         };
 
         form.prototype.testPasswordStrength = function( element, keypress ){
@@ -200,12 +207,16 @@ define(
         form.prototype.start = function(){
             var i,nodesLen;
 
-            this.nodes = this.getFieldsToValidate();
+            this.load();
             nodesLen = this.nodes.length;
 
             for( i = 0; i < nodesLen; i++ ){
                 this.manageField( this.nodes[i] );
             }
+        };
+
+        form.prototype.load = function(){
+            this.nodes = this.getFieldsToValidate();
         };
 
         return Validly.plugin( "form", form );
