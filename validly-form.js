@@ -37,11 +37,11 @@ define(
             // primary is modified (it's a reference), but pass it back
             // to keep up the idea that this function returns a result
             return primary;
-        };
+        }
 
         function merge( one, two ){
             return recursiveObjectMerge( recursiveObjectMerge( {}, one ), two );
-        };
+        }
 
         function log( content ){
             if( console && console.info ){
@@ -91,8 +91,8 @@ define(
                 }
             };
 
-            this.nodes;
-            this.parent;
+            this.nodes = [];
+            this.parent = undefined;
             this.validator = new Validly();
 
             if( !settings ){
@@ -113,7 +113,7 @@ define(
             }
 
             return this;
-        }
+        };
 
         form.prototype.getFieldsToValidate = function(){
             var nodes = document.querySelectorAll("[" + this.options.prefix + "]"),
@@ -133,7 +133,7 @@ define(
 
         form.prototype.manageField = function( node ){
             var self = this;
-            if( node && node.hasOwnProperty( "addEventListener" ) ){
+            if( node && node.addEventListener ){
                 node.addEventListener( "keyup", function( e ){
                     self.validateField( this, e.keyCode );
                 }, false );
@@ -206,8 +206,8 @@ define(
             for( i = 0; i < nodesLen; i++ ){
                 this.manageField( this.nodes[i] );
             }
-        }
+        };
 
         return Validly.plugin( "form", form );
     }
-)
+);
