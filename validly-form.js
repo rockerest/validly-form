@@ -3,13 +3,19 @@ define(
     function( Validly ){
         /****** Set up things we need ******/
         var form,
-            triggers = [
-                "min",
-                "max",
-                "require",
-                "contains",
-                "matches"
-            ];
+            triggers = {
+                "validly": [
+                    "min",
+                    "max",
+                    "require",
+                    "contains",
+                    "pattern"
+                ],
+                "form": [
+                    "match",
+                    "trigger"
+                ]
+            };
 
         /****** Helpers ******/
         function recursiveObjectMerge( primary, overwrite ){
@@ -115,6 +121,24 @@ define(
             return this;
         };
 
+        /****** Triggered Validations ******/
+        form.prototype.match = function( data, value ){
+            var el = document.getElementById( data );
+
+            return this.validator.equals( value, el.value );
+        };
+
+        form.prototype.trigger = function( data ){
+            var e = new Event( "keyup" ),
+                els = data.split( " " );
+
+            for( var i = 0; i < els.length; i++ ){
+                document.getElementById( els[i] ).dispatchEvent( e );
+            }
+
+            return true;
+        };
+
         form.prototype.getFieldsToValidate = function(){
             var nodes = document.querySelectorAll("[" + this.options.prefix + "]"),
                 finalNodes = [],
@@ -132,11 +156,13 @@ define(
         };
 
         form.prototype.manageField = function( node ){
-            var self = this;
+            var self = this,
+                listener = function( e ){
+                    self.validateField( e.target, e.keyCode );
+                };
+
             if( node && node.addEventListener ){
-                node.addEventListener( "keyup" , function( e ){
-                    self.validateField( this, e.keyCode );
-                }, false );
+                node.addEventListener( "keyup" , listener, false );
             }
             else{
                 throw new Error( "manageField can only manage EventTargets" );
@@ -144,47 +170,50 @@ define(
         };
 
         form.prototype.validateField = function( element, keypress ){
-            var passes = true,
-                i = 0,
-                len = triggers.length,
-                attr;
+            var self = this,
+                passes = true,
+                isConfirmation = element.hasAttribute( this.options.prefix + "-confirm" );
 
-            for( i; i < len; i++ ){
-                attr = element.getAttribute( this.options.prefix + "-" + triggers[i] );
+            /****** pass through Validly triggers ******/
+            processTriggers(
+                element,
+                this.options.prefix,
+                triggers.validly,
+                function( trigger, data, value ){
+                    data = data == parseInt( data ) ? parseInt( data )      : data;
+                    data = (trigger === "pattern")  ? new RegExp( data )    : data;
 
-                if( attr ){
-                    attr = attr == parseInt( attr ) ? parseInt( attr ) : attr;
-
-                    if( triggers[i] === "matches" ){
-                        attr = new RegExp( attr );
-                    }
-
-                    passes = passes && this.validator[ triggers[i] ]( attr, element.value );
+                    passes = self.validator[ trigger ]( data, value ) && passes;
                 }
+            );
+
+            /****** do work for Validly.form triggers ******/
+            processTriggers(
+                element,
+                this.options.prefix,
+                triggers.form,
+                function( trigger, data, value ){
+                    passes = self[ trigger ]( data, value ) && passes;
+                }
+            );
+
+            if( element.type === "password" && !isConfirmation ){
+                this.validatePassword( element, keypress );
             }
 
-            if( element.type === "password" ){
-                if( passes ){
-                    this.validatePassword( element, keypress );
-                }
-                else{
-                    this.options.handlers.fail( element );
-                }
+            if( passes ){
+                this.options.handlers.pass( element );
             }
             else{
-                if( passes ){
-                    this.options.handlers.pass( element );
-                }
-                else{
-                    this.options.handlers.fail( element );
-                }
+                this.options.handlers.fail( element );
             }
         };
 
         form.prototype.validatePassword = function( element, keypress ){
-            var filters = element.getAttribute( this.options.prefix + "-filters" ).split(" "),
-                minFilters = parseInt( element.getAttribute( this.options.prefix + "-meets" ) ),
-                testForStrength = element.hasAttribute( this.options.prefix + "-strength" );
+            var pre             = this.options.prefix,
+                filters         = element.hasAttribute( pre + "-filters" )  ? element.getAttribute( pre + "-filters" ).split(" ") : [],
+                minFilters      = element.hasAttribute( pre + "-meets" )    ? parseInt( element.getAttribute( pre + "-meets" ) ) : 0,
+                testForStrength = element.hasAttribute( pre + "-strength" );
 
             if( testForStrength ){
                 this.testPasswordStrength( element, keypress );
@@ -221,6 +250,21 @@ define(
 
         form.prototype.load = function(){
             this.nodes = this.getFieldsToValidate();
+        };
+
+        function processTriggers( el, prefix, arr, cb ){
+            var len = arr.length,
+                i = 0,
+                trigger;
+
+            for( i; i < len; i++ ){
+                trigger = arr[i];
+                value = el.getAttribute( prefix + "-" + trigger );
+
+                if( value ){
+                    cb( trigger, value, el.value );
+                }
+            }
         };
 
         return Validly.plugin( "form", form );
