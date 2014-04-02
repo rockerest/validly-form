@@ -7,9 +7,11 @@ define(
                 "validly": [
                     "min",
                     "max",
-                    "require",
                     "contains",
                     "pattern"
+                ],
+                "comparators": [
+                    "require"
                 ],
                 "form": [
                     "match",
@@ -174,6 +176,34 @@ define(
                 passes = true,
                 isConfirmation = element.hasAttribute( this.options.prefix + "-confirm" );
 
+            /****** run basic Validly comparators ******/
+            processTriggers(
+                element,
+                this.options.prefix,
+                triggers.comparators,
+                function( trigger, data, value ){
+                    switch( trigger ){
+                        case "require":
+                        default:
+                            break;
+                        case "number":
+                            trigger = "isNumber";
+                            break;
+                        case "integer":
+                            trigger = "isInteger";
+                            break;
+                        case "string":
+                            trigger = "isString";
+                            break;
+                        case "regex":
+                            trigger = "isRegex";
+                            break;
+                    }
+
+                    passes = self.validator[ trigger ]( value ) && passes;
+                }
+            );
+
             /****** pass through Validly triggers ******/
             processTriggers(
                 element,
@@ -235,6 +265,17 @@ define(
 
         form.prototype.testPasswordStrength = function( element, keypress ){
             this.options.handlers.password.strength( this.validator.password.testStrength( element.value, this.options.handlers.password.test ) );
+        };
+
+        form.prototype.runAll = function(){
+            var i,nodesLen;
+
+            this.load();
+            nodesLen = this.nodes.length;
+
+            for( i = 0; i < nodesLen; i++ ){
+                this.validateField( this.nodes[i], 0 );
+            }
         };
 
         form.prototype.start = function(){
