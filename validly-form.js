@@ -268,29 +268,30 @@ define(
         };
 
         form.prototype.runAll = function(){
-            var i,nodesLen;
-
-            this.load();
-            nodesLen = this.nodes.length;
-
-            for( i = 0; i < nodesLen; i++ ){
-                this.validateField( this.nodes[i], 0 );
-            }
+            runCallbackAgainstNodes( function( node ){
+                this.validateField( node, 0 );
+            });
         };
 
         form.prototype.start = function(){
-            var i,nodesLen;
-
-            this.load();
-            nodesLen = this.nodes.length;
-
-            for( i = 0; i < nodesLen; i++ ){
-                this.manageField( this.nodes[i] );
-            }
+            runCallbackAgainstNodes( function( node ){
+                this.manageField( node );
+            });
         };
 
         form.prototype.load = function(){
             this.nodes = this.getFieldsToValidate();
+        };
+
+        function runCallbackAgainstNodes( cb ){
+            var i,nodesLen;
+
+            this.load();
+            nodesLen = this.nodes.length;
+
+            for( i = 0; i < nodesLen; i++ ){
+                cb( this.nodes[i] );
+            }
         };
 
         function processTriggers( el, prefix, arr, cb ){
