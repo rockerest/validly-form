@@ -268,14 +268,18 @@ define(
         };
 
         form.prototype.runAll = function(){
-            runCallbackAgainstNodes( function( node ){
-                this.validateField( node, 0 );
+            var self = this;
+            this.load();
+            runCallbackAgainstNodes( this.nodes, function( node ){
+                self.validateField( node, 0 );
             });
         };
 
         form.prototype.start = function(){
-            runCallbackAgainstNodes( function( node ){
-                this.manageField( node );
+            var self = this;
+            this.load();
+            runCallbackAgainstNodes( this.nodes, function( node ){
+                self.manageField( node );
             });
         };
 
@@ -283,14 +287,13 @@ define(
             this.nodes = this.getFieldsToValidate();
         };
 
-        function runCallbackAgainstNodes( cb ){
+        function runCallbackAgainstNodes( nodes, cb ){
             var i,nodesLen;
 
-            this.load();
-            nodesLen = this.nodes.length;
+            nodesLen = nodes.length;
 
             for( i = 0; i < nodesLen; i++ ){
-                cb( this.nodes[i] );
+                cb( nodes[i] );
             }
         };
 
