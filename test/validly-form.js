@@ -24,6 +24,14 @@ define(
                 expect( function(){ new iv.form( div ); } ).to.throw( Error );
             });
 
+            describe.skip( "#match", function(){
+                it();
+            });
+
+            describe.skip( "#trigger", function(){
+                it();
+            });
+
             describe( "#getFieldsToValidate", function(){
                 it( "should return an array", function(){
                     form.getFieldsToValidate().should.be.a( "array" );
@@ -180,6 +188,10 @@ define(
                 });
             });
 
+            describe.skip( "#runAll", function(){
+                it();
+            });
+
             describe( "#start", function(){
                 beforeEach( function(){
                     sinon.spy( form, "getFieldsToValidate" );
@@ -203,6 +215,10 @@ define(
                     // number of `data-validly="aware"` fields
                     form.manageField.callCount.should.equal( 6 );
                 });
+            });
+
+            describe.skip( "#load", function(){
+                it();
             });
         });
     }
