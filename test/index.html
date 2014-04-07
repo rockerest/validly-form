@@ -36,9 +36,9 @@
                 <input type="text" maxlength="4"                    data-validly="aware" data-validly-max="4" />
                 <input type="text"                                  data-validly="aware" data-validly-min="8" />
                 <input type="password"  id="passwordInput"          data-validly="aware" data-validly-filters="upper lower number" data-validly-meets="3" />
-                <input type="password"  id="passwordStrengthInput"  data-validly="aware" data-validly-filters="upper lower number" data-validly-meets="3" data-validly-strength />
-                <input type="text"                                  data-validly="aware" data-validly-contains="es" />
-                <input type="text"      id="penguinInput"           data-validly="aware" data-validly-matches="penguin(s)?" />
+                <input type="password"  id="passwordStrengthInput"  data-validly="aware" data-validly-filters="upper lower number" data-validly-meets="3" data-validly-strength data-validly-match="passwordInput" />
+                <input type="text"      id="triggerer"              data-validly="aware" data-validly-contains="es" data-validly-trigger="penguinInput" />
+                <input type="text"      id="penguinInput"           data-validly="aware" data-validly-pattern="penguin(s)?" />
                 <input type="text"                                  data-not-picked-up />
             </form>
         </div>

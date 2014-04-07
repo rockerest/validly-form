@@ -24,12 +24,55 @@ define(
                 expect( function(){ new iv.form( div ); } ).to.throw( Error );
             });
 
-            describe.skip( "#match", function(){
-                it();
+            describe( "#match", function(){
+                var pass = document.getElementById( "passwordInput" ),
+                    strn = document.getElementById( "passwordStrengthInput" );
+
+                beforeEach(function(){
+                    sinon.spy( form.validator, "equals" );
+
+                    strn.value = "password";
+                    pass.value = "not_password";
+
+                    form.validateField( strn, 1 );
+                });
+
+                afterEach(function(){
+                    form.validator.equals.restore();
+                });
+
+                it( "should make a call to ::validator#equals", function(){
+                    form.validator.equals.should.have.been.calledOnce;
+                });
+
+                it( "should call ::validator#equals with the value of this field and the value of the matched field", function(){
+                    form.validator.equals.should.have.been.calledWithExactly( "password", "not_password" );
+                });
             });
 
-            describe.skip( "#trigger", function(){
-                it();
+            describe( "#trigger", function(){
+                var triggerer = document.getElementById( "triggerer" ),
+                    penguins = document.getElementById( "penguinInput" );
+
+                beforeEach(function(){
+                    sinon.spy( form, "validateField" );
+                    form.manageField( penguins );
+                });
+
+                afterEach(function(){
+                    form.validateField.restore();
+                });
+
+                it( "should trigger a keyup on the specified field", function(){
+                    form.validateField( triggerer, 1 );
+
+                    // Assert proper internal behavior
+                    form.validateField.callCount.should.equal( 2 );
+
+                    // assert deeper behavior
+                    var callTwo = form.validateField.getCall( 1 );
+                    callTwo.should.have.been.calledWithExactly( penguins, undefined );
+                });
             });
 
             describe( "#getFieldsToValidate", function(){
@@ -47,8 +90,15 @@ define(
             });
 
             describe( "#manageField", function(){
-                it( "should add an event listener on keyup to the node", function(){
+                beforeEach(function(){
                     sinon.spy( div, "addEventListener" );
+                });
+
+                afterEach(function(){
+                    div.addEventListener.restore();
+                });
+
+                it( "should add an event listener on keyup to the node", function(){
                     form.manageField( div );
 
                     div.addEventListener.should.have.been.calledWith( "keyup" );
@@ -69,9 +119,18 @@ define(
                 });
 
                 describe( "when passed a non-password field", function(){
+                    beforeEach(function(){
+                        sinon.spy( form.options.handlers, "pass" );
+                        sinon.spy( form.options.handlers, "fail" );
+                    });
+
+                    afterEach(function(){
+                        form.options.handlers.pass.restore();
+                        form.options.handlers.fail.restore();
+                    });
+
                     it( "should call the pass handler when the field passes validation", function(){
                         text.value = "penguin";
-                        sinon.spy( form.options.handlers, "pass" );
 
                         form.validateField( text, 1 );
 
@@ -80,7 +139,6 @@ define(
 
                     it( "should call the fail handler when the field fails validation", function(){
                         text.value = "piguin";
-                        sinon.spy( form.options.handlers, "fail" );
 
                         form.validateField( text, 1 );
 
@@ -188,8 +246,25 @@ define(
                 });
             });
 
-            describe.skip( "#runAll", function(){
-                it();
+            describe( "#runAll", function(){
+                beforeEach(function(){
+                    sinon.spy( form, "load" );
+                    sinon.spy( form, "validateField" );
+                    form.runAll();
+                });
+
+                afterEach(function(){
+                    form.load.restore();
+                    form.validateField.restore();
+                });
+
+                it( "should call #load once", function(){
+                    form.load.should.have.been.calledOnce;
+                });
+
+                it( "should call #validateField once for each Validly field", function(){
+                    form.validateField.callCount.should.equal( 6 );
+                });
             });
 
             describe( "#start", function(){
@@ -217,8 +292,34 @@ define(
                 });
             });
 
-            describe.skip( "#load", function(){
-                it();
+            describe( "#load", function(){
+                beforeEach(function(){
+                    sinon.spy( form, "getFieldsToValidate" );
+                });
+
+                afterEach(function(){
+                    form.getFieldsToValidate.restore();
+                });
+
+                it( "should call #getFieldsToValidate once", function(){
+                    form.load();
+
+                    form.getFieldsToValidate.should.have.been.calledOnce;
+                });
+
+                it( "should load the appropriate fields into the ::nodes array", function(){
+                    form.nodes = [];
+
+                    // assert #1
+                    form.nodes.should.be.a( "array" );
+                    form.nodes.length.should.equal( 0 );
+
+                    form.load();
+
+                    // assert #2
+                    form.nodes.should.be.a( "array" );
+                    form.nodes.length.should.equal( 6 );
+                });
             });
         });
     }
